@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klik-Klik Bintang ✨</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game">
+    <div class="hud">
+      <div class="info">
+        <p>⏱️ Waktu: <span id="time">30</span></p>
+        <p>⭐ Skor: <span id="score">0</span></p>
+      </div>
+      <button id="startBtn">Mulai</button>
+    </div>
+
+    <div id="playArea"></div>
+
+    <div id="overlay" class="hidden">
+      <div class="message">
+        <h2>Waktu Habis!</h2>
+        <p>Skor kamu: <span id="finalScore">0</span></p>
+        <button id="restartBtn">Main Lagi</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
