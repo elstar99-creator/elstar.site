@@ -1,4 +1,3 @@
-// Ambil elemen
 const playArea = document.getElementById("playArea");
 const startBtn = document.getElementById("startBtn");
 const restartBtn = document.getElementById("restartBtn");
@@ -13,7 +12,6 @@ let timer;
 let spawnInterval;
 let gameRunning = false;
 
-// Fungsi mulai game
 function startGame() {
   if (gameRunning) return;
   gameRunning = true;
@@ -25,10 +23,9 @@ function startGame() {
 
   spawnStars();
   timer = setInterval(updateTimer, 1000);
-  spawnInterval = setInterval(spawnStars, 800);
+  spawnInterval = setInterval(spawnStars, 700);
 }
 
-// Fungsi spawn bintang
 function spawnStars() {
   const star = document.createElement("div");
   star.classList.add("star");
@@ -38,40 +35,31 @@ function spawnStars() {
   playArea.appendChild(star);
 
   star.addEventListener("click", () => {
+    if (!gameRunning) return;
     score++;
     scoreDisplay.textContent = score;
     star.remove();
   });
 
   setTimeout(() => {
-    star.remove();
+    if (star.parentElement) star.remove();
   }, 1500);
 }
 
-// Fungsi waktu
 function updateTimer() {
   timeLeft--;
   timeDisplay.textContent = timeLeft;
-  if (timeLeft <= 0) {
-    endGame();
-  }
+  if (timeLeft <= 0) endGame();
 }
 
-// Fungsi akhir game
 function endGame() {
+  gameRunning = false;
   clearInterval(timer);
   clearInterval(spawnInterval);
   overlay.classList.remove("hidden");
   finalScore.textContent = score;
-  gameRunning = false;
 }
 
-// Tombol event
 startBtn.addEventListener("click", startGame);
-restartBtn.addEventListener("click", () => {
-  overlay.classList.add("hidden");
-  startGame();
-});
-
-// Supaya bintang nggak blur di HP
+restartBtn.addEventListener("click", startGame);
 playArea.style.transform = "translateZ(0)";
