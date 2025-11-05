@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Klik-Klik Bintang ✨</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="game">
     <div class="hud">
-      <div class="info">
-        <p>⏱️ Waktu: <span id="time">30</span></p>
-        <p>⭐ Skor: <span id="score">0</span></p>
-      </div>
+      <div>⏱️ Waktu: <span id="time">30</span></div>
+      <div>⭐ Skor: <span id="score">0</span></div>
       <button id="startBtn">Mulai</button>
     </div>
 
@@ -20,13 +18,20 @@
 
     <div id="overlay" class="hidden">
       <div class="message">
-        <h2>Waktu Habis!</h2>
+        <h3>Waktu Habis!</h3>
         <p>Skor kamu: <span id="finalScore">0</span></p>
         <button id="restartBtn">Main Lagi</button>
       </div>
     </div>
   </div>
 
-  <script src="game.js"></script>
+  <!-- Pastikan game baru dimuat setelah halaman siap -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const script = document.createElement('script');
+      script.src = 'game.js';
+      document.body.appendChild(script);
+    });
+  </script>
 </body>
 </html>
