@@ -12,21 +12,30 @@ let timer;
 let spawnInterval;
 let gameRunning = false;
 
+// Fungsi mulai game
 function startGame() {
-  if (gameRunning) return;
-  gameRunning = true;
+  clearInterval(timer);
+  clearInterval(spawnInterval);
+
+  overlay.classList.add("hidden");
+  overlay.style.display = "none"; // tambahan fix utama
+  playArea.innerHTML = "";
   score = 0;
   timeLeft = 30;
+  gameRunning = true;
+
   scoreDisplay.textContent = score;
   timeDisplay.textContent = timeLeft;
-  overlay.classList.add("hidden");
 
   spawnStars();
   timer = setInterval(updateTimer, 1000);
-  spawnInterval = setInterval(spawnStars, 700);
+  spawnInterval = setInterval(spawnStars, 800);
 }
 
+// Fungsi munculkan bintang
 function spawnStars() {
+  if (!gameRunning) return;
+
   const star = document.createElement("div");
   star.classList.add("star");
   star.textContent = "⭐";
@@ -46,20 +55,26 @@ function spawnStars() {
   }, 1500);
 }
 
+// Fungsi update waktu
 function updateTimer() {
   timeLeft--;
   timeDisplay.textContent = timeLeft;
   if (timeLeft <= 0) endGame();
 }
 
+// Fungsi akhir game
 function endGame() {
   gameRunning = false;
   clearInterval(timer);
   clearInterval(spawnInterval);
-  overlay.classList.remove("hidden");
   finalScore.textContent = score;
+  overlay.style.display = "flex";
+  overlay.classList.remove("hidden");
 }
 
+// Tombol event
 startBtn.addEventListener("click", startGame);
 restartBtn.addEventListener("click", startGame);
+
+// Supaya tampilan bintang tidak blur di HP
 playArea.style.transform = "translateZ(0)";
