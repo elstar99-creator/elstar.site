@@ -81,6 +81,34 @@ background-repeat: no-repeat;
     opacity: 0;
   }
 }
+    /* 🌙 Tampilan Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(10, 20, 50, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  padding: 12px 0;
+  z-index: 10;
+  border-bottom: 1px solid rgba(120,183,255,0.2);
+}
+
+.navbar a {
+  color: #b7d8ff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+  transition: 0.3s ease;
+}
+
+.navbar a:hover {
+  color: #ffffff;
+  text-shadow: 0 0 8px #7bb7ff;
+}
   </style>
 </head>
 <body>
