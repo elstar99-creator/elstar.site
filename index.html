@@ -138,6 +138,43 @@ background-repeat: no-repeat;
     <a href="mailto:lestariindahlestari99@gmail.com" class="button">Email</a>
   </div>
   <footer>© 2025 Indah Lestari | Elstar</footer>
-  <script src="https://orion-mini-private.vercel.app/orion-mini.js"></script>
+  <!-- 🌌 Orion Mini Floating Widget -->
+<div id="orion-floating">
+  <img src="https://orion-mini-private.vercel.app/images/orion-mini.png" alt="Orion Mini" id="orion-mini-img">
+</div>
+
+<style>
+  #orion-floating {
+    position: fixed;
+    bottom: 90px;
+    right: 40px;
+    animation: float 4s ease-in-out infinite;
+    z-index: 9999;
+  }
+
+  #orion-mini-img {
+    width: 90px;
+    height: auto;
+    cursor: pointer;
+    filter: drop-shadow(0 0 8px rgba(135,180,255,0.6));
+    transition: transform 0.3s ease, filter 0.3s ease;
+  }
+
+  #orion-mini-img:hover {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 12px rgba(160,200,255,0.9));
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+</style>
+
+<script>
+  document.getElementById("orion-mini-img").addEventListener("click", function() {
+    alert("Hai, aku Orion 🌙✨ Seneng kamu datang ke sini!");
+  });
+</script>
 </body>
 </html>
