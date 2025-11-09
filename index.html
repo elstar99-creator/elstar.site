@@ -125,6 +125,11 @@ background-repeat: no-repeat;
     <a href="karya/index.html">📖 Karya</a>
     <a href="news/index.html">📰 News</a>
     <a href="toko/index.html">🛍️ Toko</a>
+    <!-- Tombol Bahasa -->
+    <div class="lang-switch">
+        <span id="lang-id" class="lang-btn">Indonesia 🇮🇩</span> |
+        <span id="lang-en" class="lang-btn">England 🇬🇧</span>
+    </div>
   </nav>
   <div class="shooting-star" style="top:20%; left:30%; animation-delay:0s;"></div>
 <div class="shooting-star" style="top:40%; left:10%; animation-delay:1s;"></div>
@@ -139,6 +144,33 @@ background-repeat: no-repeat;
   </div>
   <footer>© 2025 Indah Lestari | Elstar</footer>
   <!-- 🌌 Orion Mini Floating Widget -->
+  /* Tombol Bahasa */
+.lang-switch {
+  position: absolute;
+  right: 20px;
+  top: 12px;
+  color: #a4d4ff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.lang-btn {
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.lang-btn:hover {
+  color: white;
+  text-shadow: 0 0 8px #7bd8ff;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .lang-switch {
+    right: 15px;
+    top: 60px;
+  }
+}
 <div id="orion-floating">
   <img src="https://i.postimg.cc/nrPWyZ0B/1000061469-removebg-preview-1.png" alt="Orion Mini" id="orion-mini-img">
 </div>
