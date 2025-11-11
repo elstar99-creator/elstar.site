@@ -220,11 +220,32 @@ background-repeat: no-repeat;
   </style>
   
 </div>
+  <!-- Sticker Support Me -->
+<div id="support-sticker">
+    <img src="https://i.postimg.cc/2y4RhK7C/Ungu-Putih-Ilustrasi-Koki-Selamat-Menikmati-Stiker-Lingkaran-20251111-052852-0000.png" alt="Support Me">
+</div>
+  #support-sticker {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 120px; 
+    z-index: 9999;
+}
 
-<style>
+#support-sticker img {
+    width: 100%;
+    border-radius: 50%;
+}
 
+/* Mobile */
+@media (max-width: 768px) {
+    #support-sticker {
+        width: 70px;
+        bottom: 15px;
+        left: 10px;
     }
-  }
+}
+
 </style>
 <script>
   document.getElementById("orion-mini-img").addEventListener("click", function() {
