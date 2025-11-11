@@ -230,21 +230,25 @@ background-repeat: no-repeat;
     position: fixed;
     bottom: 20px;
     left: 20px;
-    width: 120px;
+    width: 110px;
+    height: 110px;
     z-index: 9999;
 }
 
 #support-sticker img {
     width: 100%;
+    height: 100%;
+    object-fit: cover; 
     border-radius: 50%;
 }
 
 /* Mobile */
 @media (max-width: 768px) {
     #support-sticker {
-        width: 70px;
-        bottom: 15px;
-        left: 10px;
+        width: 75px;
+        height: 75px;
+        bottom: 18px;
+        left: 12px;
     }
 }
 </style> 
