@@ -147,6 +147,45 @@ background-repeat: no-repeat;
   <meta name="google-site-verification" content="h2f0tocabhudzXIpDqwA7QkGX9MiZiXHIsw2iFwNsHA" />
 </head>
 <body>
+  <script>
+  // Dapatkan nama file saat ini
+  const currentPage = window.location.pathname.split("/").pop();
+
+  // Jika bukan halaman index.html, tambahkan tombol Back
+  if (currentPage !== "index.html" && currentPage !== "") {
+    const backNav = document.createElement("div");
+    backNav.innerHTML = `
+      <nav class="back-navbar">
+        <a href="/index.html" class="back-btn">⬅️ Kembali</a>
+      </nav>
+    `;
+    document.body.prepend(backNav);
+  }
+</script>
+
+<style>
+  .back-navbar {
+    width: 100%;
+    background: #0f1a3a;
+    padding: 15px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+  }
+
+  .back-btn {
+    color: white;
+    font-size: 18px;
+    text-decoration: none;
+    background: #1e3a8a;
+    padding: 10px 15px;
+    border-radius: 12px;
+  }
+
+  .back-btn:hover {
+    background: #3b82f6;
+  }
+</style>
   <!-- Navigasi Utama -->
   <nav class="navbar">
     <a href="games/index.html">🎮 Game</a>
