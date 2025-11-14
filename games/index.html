@@ -47,11 +47,38 @@
       margin-top: 40px;
       opacity: 0.5;
       font-size: 13px;
+      .navbar {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  background: #0f1a3a;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-wrap: wrap;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.navbar a:hover {
+  color: #7bd8ff;
+}
     }
   </style>
 </head>
 <body>
-  <script src="/back.js"></script>
+<nav class="navbar">
+  <a href="/index.html">🏠 Beranda</a>
+  <a href="/games/index.html">🎮 Game</a>
+  <a href="/karya/index.html">📚 Karya</a>
+  <a href="/news/index.html">📰 News</a>
+  <a href="/toko/index.html">🛍️ Toko</a>
+</nav>
+
+<script src="/back.js"></script>
   <h1>🌠 Game Elstar</h1>
   <p>Pilih permainan yang kamu suka ✨</p>
 
