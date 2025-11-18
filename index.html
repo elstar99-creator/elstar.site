@@ -187,17 +187,25 @@ background-repeat: no-repeat;
 <div id="orion-floating">
   <img src="https://i.postimg.cc/nrPWyZ0B/1000061469-removebg-preview-1.png" alt="Orion Mini" id="orion-mini-img">
 </div>
-  <!-- Statistik Pengunjung elstar.site -->
-<div style="margin-top:20px; width:100%;">
-  <iframe 
-    plausible-embed
-    src="https://plausible.io/elstar.site?embed=true&theme=dark"
-    scrolling="no"
-    frameborder="0"
-    loading="lazy"
-    style="width:100%; height: 380px; border-radius:12px; margin-top:10px;">
-  </iframe>
-  <script async src="https://plausible.io/js/embed.host.js"></script>
+  <!-- Mini Lifetime Counter -->
+<div id="lifetime-stats"
+     style="text-align:center; margin-top:25px; font-size:14px; color:#7bb7ff;">
+  <span style="opacity:0.8;">Mengambil data...</span>
+</div>
+
+<script>
+fetch("https://plausible.io/api/v1/stats/aggregate?site_id=elstar.site&metrics=visitors&period=all")
+  .then(r => r.json())
+  .then(data => {
+    const val = data.results.visitors.value;
+    document.getElementById("lifetime-stats").innerHTML =
+      `✨ <strong>👁 Total Pengunjung: ${val}</strong>`;
+  })
+  .catch(() => {
+    document.getElementById("lifetime-stats").innerHTML =
+      "Tidak bisa memuat data 💫";
+  });
+</script>
 </div>
 
 <style>
