@@ -301,6 +301,37 @@ document.getElementById('startBtn').onclick=()=>{
 
 resizeGame();
 window.addEventListener("resize", resizeGame);
+  // FIX RESPONSIVE — SCALE + CENTERING (HP & Desktop)
+(function resizeGame(){
+  function adjust() {
+    const originalW = 900;
+    const originalH = 320;
+
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+
+    // skala game berdasarkan lebar HP
+    const scaleW = screenW / originalW;
+    const scaleH = screenH / originalH;
+
+    // pilih skala TERKECIL supaya tidak ada yang kepotong
+    const scale = Math.min(scaleW, scaleH);
+
+    // ukuran canvas asli (pixel physics)
+    canvas.width = originalW * scale;
+    canvas.height = originalH * scale;
+
+    // ukuran visual
+    canvas.style.width = (originalW * scale) + "px";
+    canvas.style.height = (originalH * scale) + "px";
+
+    // transform (scale + posisi ke tengah)
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  }
+
+  adjust();
+  window.addEventListener("resize", adjust);
+})();
 
 draw();
     </script>
