@@ -276,27 +276,36 @@ document.getElementById('startBtn').onclick=()=>{
   loop();
 }
 
-// DPI FIX RESPONSIVE (untuk mobile & desktop)
-(function fixDPI(){
-  const dpr = window.devicePixelRatio || 1;
+// AUTO RESIZE CANVAS (mobile & desktop)
+function resizeGame() {
+  let baseW = 900;
+  let baseH = 320;
 
-  // lebar tampilan nyata (sesuai layar)
-  const displayWidth = canvas.clientWidth;
+  // Jika layar kecil (HP)
+  if (window.innerWidth < 700) {
+    const scale = window.innerWidth / baseW;
 
-  // perbandingan skala terhadap ukuran asli
-  const scale = displayWidth / 900; // 900 = W asli
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = baseH * scale + "px";
 
-  // ukuran canvas sebenarnya setelah skala
-  canvas.width = 900 * scale * dpr;
-  canvas.height = 320 * scale * dpr;
+    canvas.width = baseW * scale;
+    canvas.height = baseH * scale;
 
-  // ukuran visual di layar
-  canvas.style.width = displayWidth + 'px';
-  canvas.style.height = (320 * scale) + 'px';
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  } else {
+    // Desktop normal
+    canvas.style.width = baseW + "px";
+    canvas.style.height = baseH + "px";
 
-  // transform supaya game ikut membesar
-  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
-})();
+    canvas.width = baseW;
+    canvas.height = baseH;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+}
+
+resizeGame();
+window.addEventListener("resize", resizeGame);
 
 draw();
     </script>
