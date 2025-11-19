@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monkey Jump – Elstar</title>
+
+<style>
+    body{
+        margin:0;
+        overflow:hidden;
+        background:#cdeff6;
+        font-family:system-ui;
+    }
+
+    #game{
+        position:absolute;
+        inset:0;
+        margin:auto;
+        background:transparent;
+        display:block;
+    }
+
+    #uiScore{
+        position:absolute;
+        left:15px;
+        top:15px;
+        font-size:20px;
+        font-weight:600;
+        color:#046;
+        z-index:10;
+    }
+
+    #uiHint{
+        position:absolute;
+        right:15px;
+        top:15px;
+        font-size:16px;
+        color:#055;
+        opacity:.8;
+        z-index:10;
+    }
+
+    #startBtn{
+        position:absolute;
+        left:50%;
+        top:65%;
+        transform:translateX(-50%);
+        background:#03a884;
+        color:white;
+        padding:16px 30px;
+        border-radius:14px;
+        font-size:22px;
+        font-weight:600;
+        cursor:pointer;
+        border:0;
+        display:block;
+        z-index:20;
+        box-shadow:0 6px 25px rgba(0,0,0,0.25);
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="uiScore">Score: <span id="score">0</span></div>
+<div id="uiHint">Tap / Space jump</div>
+<button id="startBtn">START GAME 🐒</button>
+
+<script>
+// -------------------------------
+// CANVAS + RESPONSIVE 100%
+// -------------------------------
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas(){
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.onresize = resizeCanvas;
+
+// -------------------------------
+// GAME VARIABEL
+// -------------------------------
+let score = 0;
+let running = false;
+let obstacles = [];
+let gravity = 1;
+let jumpPower = -13;
+let groundH = 90;
+
+// Player
+const player = {
+    x: 80,
+    y: 0,
+    w: 60,
+    h: 60,
+    vy: 0,
+    draw(){
+        // monyet
+        ctx.fillStyle="#a26639";
+        ctx.beginPath();
+        ctx.ellipse(this.x+30, this.y+35, 30, 35, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#f4d7bd";
+        ctx.beginPath();
+        ctx.ellipse(this.x+30, this.y+35, 22, 26, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        // mata
+        ctx.fillStyle="#000";
+        ctx.beginPath(); ctx.arc(this.x+22, this.y+32, 4,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(this.x+38, this.y+32, 4,0,Math.PI*2); ctx.fill();
+    }
+};
+
+// Obstacle
+class Ob{
+    constructor(x){
+        this.x = x;
+        this.w = 40;
+        this.h = 50;
+        this.passed = false;
+    }
+    draw(){
+        ctx.fillStyle="#5b3a17";
+        ctx.fillRect(this.x, canvas.height-groundH-this.h, this.w, this.h);
+
+        ctx.fillStyle="#2e7d32";
+        ctx.beginPath();
+        ctx.ellipse(this.x+20, canvas.height-groundH-this.h, 30, 18, 0,0,Math.PI*2);
+        ctx.fill();
+    }
+}
+
+// -------------------------------
+// START GAME
+// -------------------------------
+document.getElementById("startBtn").onclick = ()=>{
+    score = 0;
+    document.getElementById("score").textContent = score;
+
+    player.y = canvas.height - groundH - player.h;
+    player.vy = 0;
+
+    obstacles = [];
+    running = true;
+
+    document.getElementById("startBtn").style.display="none";
+    loop();
+};
+
+// -------------------------------
+// GAME LOOP
+// -------------------------------
+let spawnTimer = 0;
+
+function loop(){
+    if(!running) return;
+
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function update(){
+    // player gravity
+    player.vy += gravity;
+    player.y += player.vy;
+
+    let groundY = canvas.height - groundH - player.h;
+    if(player.y > groundY){
+        player.y = groundY;
+        player.vy = 0;
+    }
+
+    // spawn obstacle
+    spawnTimer--;
+    if(spawnTimer <= 0){
+        obstacles.push(new Ob(canvas.width));
+        spawnTimer = 120;
+    }
+
+    // move obstacle
+    obstacles.forEach(o=>{
+        o.x -= 6;
+
+        // score
+        if(!o.passed && o.x + o.w < player.x){
+            o.passed = true;
+            score += 10;
+            document.getElementById("score").textContent = score;
+        }
+
+        // collision
+        let py = player.y;
+        let ph = player.h;
+        let gy = canvas.height-groundH;
+
+        if( player.x < o.x+o.w &&
+            player.x+player.w > o.x &&
+            py+ph > gy-o.h ){
+                endGame();
+        }
+    });
+
+    obstacles = obstacles.filter(o=>o.x > -60);
+}
+
+// -------------------------------
+// DRAW
+// -------------------------------
+function draw(){
+    // background
+    ctx.fillStyle="#cdeff6";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // ground
+    ctx.fillStyle="#7c5a2b";
+    ctx.fillRect(0,canvas.height-groundH,canvas.width,groundH);
+
+    // items
+    obstacles.forEach(o=>o.draw());
+    player.draw();
+}
+
+// -------------------------------
+// GAME OVER
+// -------------------------------
+function endGame(){
+    running=false;
+
+    ctx.fillStyle="rgba(0,0,0,0.4)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle="#fff";
+    ctx.font="28px system-ui";
+    ctx.textAlign="center";
+    ctx.fillText("GAME OVER",canvas.width/2,canvas.height/2);
+
+    document.getElementById("startBtn").style.display="block";
+}
+
+// -------------------------------
+// INPUT
+// -------------------------------
+window.onclick = ()=>{ if(running) jump(); };
+window.onkeydown = (e)=>{ if(e.code==="Space" && running) jump(); };
+
+function jump(){
+    if(player.vy === 0){
+        player.vy = jumpPower;
+    }
+}
+
+</script>
+
+</body>
+  </html>
