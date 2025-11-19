@@ -41,7 +41,9 @@
 </head>
 <body>
   <div id="gameWrap">
-    <canvas id="c" width="900" height="320"></canvas>
+    <div id="gameContainer">
+  <canvas id="c" width="900" height="320"></canvas>
+    </div>
 
     <div class="ui">Score: <span id="score">0</span></div>
     <div class="hint">Tap / Space to jump • R restart</div>
@@ -299,38 +301,32 @@ document.getElementById('startBtn').onclick=()=>{
   window.addEventListener('resize', adjust);
 })();
 
-resizeGame();
-window.addEventListener("resize", resizeGame);
-  // FIX RESPONSIVE — SCALE + CENTERING (HP & Desktop)
+// FIX RESPONSIVE — PERFECT MOBILE VIEWPORT
 (function resizeGame(){
   function adjust() {
     const originalW = 900;
     const originalH = 320;
 
-    const screenW = window.innerWidth;
-    const screenH = window.innerHeight;
+    const container = document.getElementById("gameContainer");
+    const boxW = container.clientWidth;
+    const boxH = container.clientHeight;
 
-    // skala game berdasarkan lebar HP
-    const scaleW = screenW / originalW;
-    const scaleH = screenH / originalH;
+    const scale = Math.min(
+      boxW / originalW,
+      boxH / originalH
+    );
 
-    // pilih skala TERKECIL supaya tidak ada yang kepotong
-    const scale = Math.min(scaleW, scaleH);
-
-    // ukuran canvas asli (pixel physics)
-    canvas.width = originalW * scale;
-    canvas.height = originalH * scale;
-
-    // ukuran visual
     canvas.style.width = (originalW * scale) + "px";
     canvas.style.height = (originalH * scale) + "px";
 
-    // transform (scale + posisi ke tengah)
+    canvas.width = originalW * scale;
+    canvas.height = originalH * scale;
+
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
   }
 
-  adjust();
   window.addEventListener("resize", adjust);
+  adjust();
 })();
 
 draw();
