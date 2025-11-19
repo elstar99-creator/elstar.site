@@ -52,62 +52,51 @@
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
 
-// ukuran asli game (tetap)
-const W = 900, H = 320;
-
-// supaya canvas bisa menyesuaikan ukuran card
-function scaleCanvas(){
-  const displayWidth = canvas.clientWidth; 
-  const scale = displayWidth / W;
-
-  canvas.width = W * scale * window.devicePixelRatio;
-  canvas.height = H * scale * window.devicePixelRatio;
-
-  ctx.setTransform(scale * window.devicePixelRatio, 0, 0, scale * window.devicePixelRatio, 0, 0);
-
-  draw(); // gambar ulang ketika resize
-}
-
-window.addEventListener('resize', scaleCanvas);
-setTimeout(scaleCanvas, 50); // untuk HP agar benar sesudah renderring pertama
-
-// ORIGINAL GAME VALUES ↓↓↓
 let gravity = 0.9;
-let gameSpeed = 4;
+let gameSpeed = 4; // ❗ versi pelan
 let score = 0;
 let highScore = localStorage.getItem('monkey-high') || 0;
-let running = false;
+let running = false; // ❗ default berhenti dulu (ada tombol start)
+
 const groundY = H - 60;
 
-// --- PLAYER (besar) ---
+// 🐒 Monkey player (dibesarkan)
 const player = {
   x: 80,
   y: groundY - 90,
-  w: 70,
-  h: 90,
+  w: 70,      // ❗ monyet diperbesar
+  h: 90,      // ❗ monyet diperbesar
   vy: 0,
   jumpStrength: -17,
   grounded: true,
-  draw(){
+  draw() {
     ctx.save();
     ctx.translate(this.x, this.y);
 
     // body
-    ctx.fillStyle='#a0522d';
-    roundRect(ctx, 10,30,50,60,10,true,false);
+    ctx.fillStyle = '#a0522d';
+    roundRect(ctx, 10, 30, 50, 60, 10, true, false);
 
     // head
     ctx.beginPath(); ctx.arc(35,20,22,0,Math.PI*2); ctx.fill();
 
-    ctx.fillStyle='#f3d6b6';
+    // face patch
+    ctx.fillStyle = '#f3d6b6';
     ctx.beginPath(); ctx.arc(35,22,15,0,Math.PI*2); ctx.fill();
 
-    ctx.fillStyle='#000';
-    ctx.fillRect(27,15,5,5); ctx.fillRect(40,15,5,5);
+    // eyes
+    ctx.fillStyle = '#000';
+    ctx.fillRect(27,15,5,5);
+    ctx.fillRect(40,15,5,5);
 
-    ctx.beginPath(); ctx.arc(35,30,7,0,Math.PI); ctx.stroke();
+    // smile
+    ctx.beginPath();
+    ctx.arc(35,30,7,0,Math.PI);
+    ctx.stroke();
 
+    // tail
     ctx.strokeStyle='#a0522d'; ctx.lineWidth=5;
     ctx.beginPath(); ctx.moveTo(0,40);
     ctx.quadraticCurveTo(-25,10,0,5);
@@ -117,29 +106,34 @@ const player = {
   }
 };
 
-// --- OBSTACLES ---
+// 🌴 Obstacles (POHON RENDAH)
 let obstacles = [];
 function spawnObstacle(){
-  const h = 40 + Math.random()*20;
-  obstacles.push({
+  const h = 40 + Math.random()*20; // ❗ jauh lebih rendah
+  const obs = {
     x: W + 40,
     w: 40,
     h: h,
-    passed:false,
+    passed: false,
     draw(){
-      ctx.fillStyle='#6b4f2b';
-      roundRect(ctx, this.x, groundY-this.h, this.w, this.h, 8, true, false);
-      ctx.fillStyle='#2e7d32';
-      ctx.beginPath(); ctx.ellipse(this.x+20, groundY-this.h-6, 32,12,0,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#ffd54f';
-      ctx.beginPath(); ctx.arc(this.x+15, groundY-this.h-6,5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#6b4f2b';
+      roundRect(ctx, this.x, groundY - this.h, this.w, this.h, 8, true, false);
+
+      ctx.fillStyle = '#2e7d32';
+      ctx.beginPath();
+      ctx.ellipse(this.x+20, groundY-this.h-6, 32, 12, 0, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffd54f';
+      ctx.beginPath(); ctx.arc(this.x+15, groundY-this.h-6, 5,0,Math.PI*2); ctx.fill();
     },
     update(){ this.x -= gameSpeed; }
-  });
+  };
+  obstacles.push(obs);
 }
 
-// --- ROUND RECT ---
-function roundRect(ctx,x,y,w,h,r,fill,stroke){
+// Rounded rectangle helper
+function roundRect(ctx, x, y, w, h, r, fill, stroke){
   ctx.beginPath();
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r);
@@ -160,6 +154,7 @@ function jump(){
   }
 }
 
+// Input
 document.addEventListener('keydown', e=>{
   if(e.code==='Space'){ e.preventDefault(); jump(); }
   if(e.key==='r') reset();
@@ -167,65 +162,70 @@ document.addEventListener('keydown', e=>{
 canvas.addEventListener('mousedown', jump);
 canvas.addEventListener('touchstart', e=>{ e.preventDefault(); jump(); });
 
-// LOGIC
+// GAME LOOP UPDATE
 let spawnTimer = 0;
 function update(){
   if(!running) return;
 
   player.vy += gravity;
   player.y += player.vy;
-
   if(player.y + player.h >= groundY){
     player.y = groundY - player.h;
     player.vy = 0;
     player.grounded = true;
   }
 
-  obstacles.forEach(o=>o.update());
+  obstacles.forEach(o=> o.update());
   if(obstacles.length && obstacles[0].x + obstacles[0].w < -50) obstacles.shift();
 
   spawnTimer--;
   if(spawnTimer <= 0){
     spawnObstacle();
-    spawnTimer = 80 + Math.random()*50;
+    spawnTimer = 90 + Math.random()*70; // ❗ lebih jarang
   }
 
+  // score
   obstacles.forEach(o=>{
     if(!o.passed && o.x + o.w < player.x){
-      o.passed=true;
-      score+=10;
-      document.getElementById('score').textContent=score;
+      o.passed = true;
+      score += 10;
+      document.getElementById('score').textContent = score;
     }
-    if(player.x < o.x+o.w && player.x+player.w > o.x &&
-       player.y < groundY && player.y+player.h > groundY-o.h){
+    if(collide(player, o)){
       running=false;
       endGame();
     }
   });
 }
 
+// Collision
+function collide(p,o){
+  return p.x < o.x+o.w && p.x+p.w > o.x &&
+         p.y < groundY && p.y+p.h > groundY-o.h;
+}
+
 // DRAW
 function draw(){
   ctx.clearRect(0,0,W,H);
 
-  const g=ctx.createLinearGradient(0,0,0,H);
+  const g = ctx.createLinearGradient(0,0,0,H);
   g.addColorStop(0,'#cdeff6');
   g.addColorStop(1,'#e8f8ff');
-  ctx.fillStyle=g;
-  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 
-  ctx.fillStyle='#7c5a2b';
-  ctx.fillRect(0,groundY,W,70);
+  ctx.fillStyle='#fff59d';
+  ctx.beginPath(); ctx.arc(W-80,60,30,0,Math.PI*2); ctx.fill();
+
+  ctx.fillStyle='#7c5a2b'; ctx.fillRect(0, groundY, W, 70);
 
   obstacles.forEach(o=>o.draw());
   player.draw();
 
   ctx.fillStyle='#045';
   ctx.font='16px system-ui';
-  ctx.fillText("High: "+highScore,16,22);
+  ctx.fillText("High: "+highScore, 16, 22);
 }
 
-// GAME LOOP
 function loop(){
   update();
   draw();
@@ -249,8 +249,8 @@ function endGame(){
     localStorage.setItem('monkey-high',highScore);
   }
 
-  startBtn.style.display='block';
-  startBtn.textContent='PLAY AGAIN 🐒';
+  document.getElementById('startBtn').style.display='block';
+  document.getElementById('startBtn').textContent='PLAY AGAIN 🐒';
 }
 
 // RESET
@@ -265,22 +265,26 @@ function reset(){
   loop();
 }
 
-// START
-const startBtn = document.getElementById('startBtn');
-startBtn.onclick=()=>{
-  obstacles=[];
-  score=0;
-  player.y=groundY-player.h;
-  player.vy=0;
+// START BUTTON
+document.getElementById('startBtn').onclick=()=>{
+  score=0; obstacles=[];
+  player.y=groundY-player.h; player.vy=0;
+  document.getElementById('score').textContent=0;
   running=true;
-  startBtn.style.display='none';
+  document.getElementById('startBtn').style.display='none';
   spawnTimer=40;
   loop();
-};
+}
 
-// initial draw + scale
+// DPI FIX
+(function fixDPI(){
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(dpr,dpr);
+})();
+
 draw();
-scaleCanvas();
-     </script>
+    </script>
 </body>
 </html>
