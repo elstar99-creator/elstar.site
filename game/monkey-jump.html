@@ -278,29 +278,6 @@ document.getElementById('startBtn').onclick=()=>{
   loop();
 }
 
-// FIX RESPONSIVE — skala seluruh game
-(function resizeGame(){
-  function adjust() {
-    const realWidth = window.innerWidth;
-    const originalW = 900;   // ukuran game asli
-    const originalH = 320;
-
-    // faktor skala menyamakan lebar screen
-    scale = realWidth / originalW;
-
-    canvas.width = originalW * scale;
-    canvas.height = originalH * scale;
-
-    canvas.style.width = (originalW * scale) + "px";
-    canvas.style.height = (originalH * scale) + "px";
-
-    ctx.setTransform(scale, 0, 0, scale, 0, 0);
-  }
-
-  adjust();
-  window.addEventListener('resize', adjust);
-})();
-
 // FIX RESPONSIVE — PERFECT MOBILE VIEWPORT
 (function resizeGame(){
   function adjust() {
