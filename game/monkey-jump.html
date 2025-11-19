@@ -277,33 +277,37 @@ document.getElementById('startBtn').onclick=()=>{
   spawnTimer=40;
   loop();
 }
+  // RESPONSIVE FIX — FIT TO SCREEN WITHOUT CUT
+(function autoScale() {
 
-// FIX RESPONSIVE — PERFECT MOBILE VIEWPORT
-(function resizeGame(){
+  const ORIGINAL_W = 900;
+  const ORIGINAL_H = 320;
+
   function adjust() {
-    const originalW = 900;
-    const originalH = 320;
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
 
-    const container = document.getElementById("gameContainer");
-    const boxW = container.clientWidth;
-    const boxH = container.clientHeight;
-
+    // Cari skala TERKECIL supaya semua konten terlihat
     const scale = Math.min(
-      boxW / originalW,
-      boxH / originalH
+      screenW / ORIGINAL_W,
+      screenH / ORIGINAL_H
     );
 
-    canvas.style.width = (originalW * scale) + "px";
-    canvas.style.height = (originalH * scale) + "px";
+    // ukuran fisik (canvas internal)
+    canvas.width = ORIGINAL_W * scale;
+    canvas.height = ORIGINAL_H * scale;
 
-    canvas.width = originalW * scale;
-    canvas.height = originalH * scale;
+    // ukuran visual CSS
+    canvas.style.width = (ORIGINAL_W * scale) + "px";
+    canvas.style.height = (ORIGINAL_H * scale) + "px";
 
+    // scaling isi game
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
   }
 
   window.addEventListener("resize", adjust);
   adjust();
+
 })();
 
 draw();
