@@ -1,0 +1,47 @@
+<!doctype html>
+
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Monkey Jump — Elstar</title>
+  <style>
+    body{margin:0;background:#cfeffc;font-family:Inter,system-ui}
+    #wrap{display:flex;justify-content:center;align-items:center;height:100vh;padding:20px}
+    canvas{background:#e6faff;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,0.2)}
+    #startBtn{
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      padding:14px 26px;font-size:20px;border:0;border-radius:12px;
+      background:#00a884;color:#fff;cursor:pointer;font-weight:600;
+      box-shadow:0 4px 10px rgba(0,0,0,0.25)
+    }
+  </style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="900" height="360"></canvas>
+  <button id="startBtn">START GAME 🐒</button>
+</div>
+<script>
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+let W=c.width,H=c.height;const groundY=H-70;
+let running=false,score=0,gameSpeed=5;// Player monkey (bigger, clearer, standing) const player={ x:120,y:groundY-90,w:60,h:90,vy:0,grounded:true, draw(){ ctx.save();ctx.translate(this.x,this.y); ctx.fillStyle='#8b4513';ctx.fillRect(10,30,40,60); ctx.beginPath();ctx.arc(30,20,20,0,Math.PI2);ctx.fill(); ctx.fillStyle='#f5d7b5';ctx.beginPath();ctx.arc(30,22,14,0,Math.PI2);ctx.fill(); ctx.fillStyle='#000';ctx.fillRect(22,15,4,4);ctx.fillRect(34,15,4,4); ctx.beginPath();ctx.arc(30,28,7,0,Math.PI);ctx.stroke(); ctx.strokeStyle='#8b4513';ctx.lineWidth=5; ctx.beginPath();ctx.moveTo(0,40);ctx.quadraticCurveTo(-20,20,0,10);ctx.stroke(); ctx.restore(); } };
+
+// Low banana tree obstacles let obs=[]; function spawn(){ const h=60+Math.random()20; obs.push({x:W+60,w:45,h:h,passed:false, draw(){ ctx.fillStyle='#6b4f2b';ctx.fillRect(this.x,groundY-this.h,this.w,this.h); ctx.fillStyle='#2e7d32';ctx.beginPath();ctx.ellipse(this.x+22,groundY-this.h-5,32,14,0,0,Math.PI2);ctx.fill(); ctx.fillStyle='#ffd54f';ctx.beginPath();ctx.arc(this.x+10,groundY-this.h-5,5,0,Math.PI*2);ctx.fill(); }, update(){this.x-=gameSpeed;} }); }
+
+function jump(){if(!running)return;if(player.grounded){player.vy=-15;player.grounded=false}}
+
+function update(){ if(!running)return; player.vy+=0.8;player.y+=player.vy; if(player.y+player.h>=groundY){player.y=groundY-player.h;player.vy=0;player.grounded=true} obs.forEach(o=>o.update()); if(obs.length&&obs[0].x+obs[0].w<0)obs.shift(); if(Math.random()<0.015)spawn(); obs.forEach(o=>{ if(!o.passed&&o.x+o.w<player.x){o.passed=true;score+=10} if(player.x<o.x+o.w&&player.x+player.w>o.x&&player.y<groundY&&player.y+player.h>groundY-o.h){running=false;showGameOver()} }); }
+
+function draw(){ ctx.clearRect(0,0,W,H); ctx.fillStyle='#cfeffc';ctx.fillRect(0,0,W,H); ctx.fillStyle='#7b5c33';ctx.fillRect(0,groundY,W,80); obs.forEach(o=>o.draw()); player.draw(); ctx.fillStyle='#045';ctx.font='18px sans-serif';ctx.fillText('Score: '+score,20,30); }
+
+function loop(){update();draw();if(running)requestAnimationFrame(loop)}
+
+function showGameOver(){ ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,0,W,H); ctx.fillStyle='#fff';ctx.font='26px sans-serif';ctx.textAlign='center'; ctx.fillText('Game Over',W/2,H/2-10); ctx.font='18px sans-serif';ctx.fillText('Tap START untuk main lagi',W/2,H/2+20); document.getElementById('startBtn').style.display='block'; }
+
+function startGame(){ score=0;obs=[];player.y=groundY-player.h;player.vy=0;running=true; document.getElementById('startBtn').style.display='none'; loop(); }
+
+document.getElementById('startBtn').onclick=startGame; document.addEventListener('keydown',e=>{if(e.code==='Space')jump()}); c.addEventListener('mousedown',jump); c.addEventListener('touchstart',jump); </script>
+
+</body>
+</html>
