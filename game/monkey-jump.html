@@ -99,7 +99,7 @@ const player = {
     h: 75,
     vy: 0,
     draw(){
-    const px = 15; // ukuran pixel (5 px = total tinggi ~75px)
+    const px = 11; // ukuran pixel (5 px = total tinggi ~75px)
     const startX = this.x;
     const startY = this.y;
 
@@ -159,7 +159,7 @@ document.getElementById("startBtn").onclick = ()=>{
     score = 0;
     document.getElementById("score").textContent = score;
 
-    player.y = canvas.height - groundH - player.h + 20;
+    player.y = canvas.height - groundH - player.h + 15;
     player.vy = 0;
 
     obstacles = [];
