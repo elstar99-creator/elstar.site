@@ -99,27 +99,44 @@ const player = {
     h: 75,
     vy: 0,
     draw(){
-        // kepala besar
-        ctx.fillStyle="#a26639";
-        ctx.beginPath();
-        ctx.arc(this.x+37, this.y+37, 37, 0, Math.PI*2);
-        ctx.fill();
+        draw(){
+    const px = 5; // ukuran pixel (5 px = total tinggi ~75px)
+    const startX = this.x;
+    const startY = this.y;
 
-        // wajah
-        ctx.fillStyle="#f4d7bd";
-        ctx.beginPath();
-        ctx.arc(this.x+37, this.y+37, 28, 0, Math.PI*2);
-        ctx.fill();
+    // pixel art 15×15 (mirip gambar yang kamu suka)
+    const sprite = [
+        "000000222220000",
+        "000022111122000",
+        "000211111111200",
+        "002111222111220",
+        "021112111211120",
+        "021111111111120",
+        "211111111111112",
+        "211112111211112",
+        "211111111111112",
+        "211122222211112",
+        "211121111121112",
+        "021121111121120",
+        "002211111112200",
+        "000021111120000",
+        "000002222200000"
+    ];
 
-        // mata
-        ctx.fillStyle="#000";
-        ctx.beginPath(); ctx.arc(this.x+28, this.y+33, 5,0,Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(this.x+46, this.y+33, 5,0,Math.PI*2); ctx.fill();
+    for(let y=0; y<sprite.length; y++){
+        for(let x=0; x<sprite[y].length; x++){
+            const c = sprite[y][x];
 
-        // badan
-        ctx.fillStyle="#a26639";
-        ctx.fillRect(this.x+20, this.y+60, 35, 18);
+            if(c==="0") continue;
+
+            if(c==="1") ctx.fillStyle="#f4d7bd";   // wajah (cream)
+            if(c==="2") ctx.fillStyle="#a26639";   // bulu coklat
+
+            ctx.fillRect(startX + x*px, startY + y*px, px, px);
+        }
     }
+        }
+        
 };
 
 // OBSTACLE – pohon DIPENDEKIN
