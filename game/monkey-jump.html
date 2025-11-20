@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monkey Jump – Elstar</title>
+
+<style>
+    body{
+        margin:0;
+        background:#cdeff6;
+        font-family:system-ui;
+        overflow:hidden;
+    }
+    #scoreBox{
+        position:fixed;
+        top:12px;
+        left:12px;
+        font-size:20px;
+        font-weight:600;
+        color:#084;
+    }
+    #hint{
+        position:fixed;
+        top:12px;
+        right:12px;
+        font-size:16px;
+        color:#055;
+    }
+    #startBtn{
+        position:fixed;
+        padding:18px 36px;
+        background:#00a884;
+        border:0;
+        border-radius:18px;
+        font-size:22px;
+        color:#fff;
+        font-weight:600;
+        left:50%;
+        top:50%;
+        transform:translate(-50%,-50%);
+        cursor:pointer;
+        box-shadow:0 8px 25px rgba(0,0,0,0.25);
+        display:block;
+    }
+</style>
+</head>
+<body>
+
+<div id="scoreBox">Score: 0</div>
+<div id="hint">Tap / Space jump</div>
+<button id="startBtn">START GAME 🐒</button>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let W, H;
+function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// ==== PLAYER ==== //
+const player = {
+    x: 120,
+    y: 0,
+    w: 110,
+    h: 110,
+    vy: 0,
+    draw(){
+        // badan (lebih proporsional)
+        ctx.fillStyle="#a26639";
+        ctx.fillRect(this.x+40, this.y+85, 34, 30);
+
+        // kepala
+        ctx.fillStyle="#a26639";
+        ctx.beginPath();
+        ctx.arc(this.x+55, this.y+55, 55, 0, Math.PI*2);
+        ctx.fill();
+
+        // wajah
+        ctx.fillStyle="#f4d7bd";
+        ctx.beginPath();
+        ctx.arc(this.x+55, this.y+55, 42, 0, Math.PI*2);
+        ctx.fill();
+
+        // mata
+        ctx.fillStyle="#000";
+        ctx.beginPath(); ctx.arc(this.x+40, this.y+48, 7,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(this.x+70, this.y+48, 7,0,Math.PI*2); ctx.fill();
+    }
+};
+
+let gravity = 1.2;
+let jumpPower = -23;  // lompat lebih tinggi
+let groundH = 120;
+
+let obstacles = [];
+let running = false;
+let score = 0;
+let spawn = 0;
+
+// ==== POHON (OBSTACLE) ==== //
+class Ob{
+    constructor(x){
+        this.x = x;
+        this.w = 32;
+        this.h = 32;
+        this.passed = false;
+    }
+    draw(){
+        let baseY = H - groundH;
+        ctx.fillStyle="#5b3a17";
+        ctx.fillRect(this.x, baseY - this.h, this.w, this.h);
+
+        ctx.fillStyle="#2e7d32";
+        ctx.beginPath();
+        ctx.ellipse(this.x + this.w/2, baseY - this.h, 25, 15, 0, Math.PI*2);
+        ctx.fill();
+    }
+}
+
+// ==== INPUT ==== //
+window.addEventListener("keydown", e=>{
+    if(e.code==="Space") jump();
+});
+window.addEventListener("touchstart", jump);
+
+function jump(){
+    if(!running) return;
+    let limitY = H - groundH - player.h;
+    if(player.y >= limitY - 5){
+        player.vy = jumpPower;
+    }
+}
+
+// ==== UPDATE ==== //
+function update(){
+    // Player gravity
+    player.vy += gravity;
+    player.y += player.vy;
+
+    let limitY = H - groundH - player.h;
+    if(player.y > limitY){
+        player.y = limitY;
+        player.vy = 0;
+    }
+
+    // Spawn obstacle
+    spawn--;
+    if(spawn <= 0){
+        obstacles.push(new Ob(W + 10));
+        spawn = 130; // lebih jarang
+    }
+
+    // Geser pohon
+    obstacles.forEach(o=>{
+        o.x -= 3.0; // lebih pelan
+
+        // Score
+        if(!o.passed && o.x + o.w < player.x){
+            o.passed = true;
+            score += 10;
+            document.getElementById("scoreBox").textContent = "Score: " + score;
+        }
+
+        // Collision
+        let gy = H - groundH;
+        if(
+            player.x < o.x+o.w &&
+            player.x+player.w > o.x &&
+            player.y+player.h > gy-o.h
+        ){
+            endGame();
+        }
+    });
+
+    // Buang pohon yg keluar layar
+    obstacles = obstacles.filter(o => o.x > -60);
+}
+
+// ==== DRAW ==== //
+function draw(){
+    ctx.fillStyle="#cdeff6";
+    ctx.fillRect(0,0,W,H);
+
+    // tanah
+    ctx.fillStyle="#7c5a2b";
+    ctx.fillRect(0, H-groundH, W, groundH);
+
+    obstacles.forEach(o=>o.draw());
+    player.draw();
+}
+
+// ==== GAME LOOP ==== //
+function loop(){
+    if(!running) return;
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// ==== GAME OVER ==== //
+function endGame(){
+    running = false;
+
+    ctx.fillStyle="rgba(0,0,0,0.35)";
+    ctx.fillRect(0,0,W,H);
+
+    ctx.fillStyle="#fff";
+    ctx.font="28px system-ui";
+    ctx.textAlign="center";
+    ctx.fillText("Game Over", W/2, H/2 - 10);
+    ctx.font="18px system-ui";
+    ctx.fillText("Tap START untuk main lagi", W/2, H/2 + 22);
+
+    const btn = document.getElementById("startBtn");
+    btn.style.display = "block";
+    btn.textContent = "PLAY AGAIN 🐒";
+}
+
+// ==== START ==== //
+document.getElementById("startBtn").onclick = ()=>{
+    score = 0;
+    document.getElementById("scoreBox").textContent = "Score: 0";
+    obstacles = [];
+    player.y = 0;
+    player.vy = 0;
+    spawn = 30;
+    running = true;
+
+    document.getElementById("startBtn").style.display="none";
+    loop();
+};
+
+draw();
+</script>
+
+</body>
+</html>
