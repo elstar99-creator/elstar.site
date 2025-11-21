@@ -64,32 +64,9 @@
 
 </article>
 
-<div class="cta">
-  <button id="copyBtn">Salin konten (untuk ditempel ke GitHub)</button>
-  <button id="downloadBtn" class="secondary">Unduh sebagai HTML</button>
-</div>
-
 <footer>
-  <div>Jika mau, aku bisa buatkan versi singkat untuk feed, thumbnail, atau versi SEO-ready dengan meta tag lengkap dan struktur JSON-LD.</div>
 </footer>
 
   </main>  <script>
-    document.getElementById('copyBtn').addEventListener('click', async function(){
-      try{
-        const content = document.getElementById('content').outerHTML;
-        await navigator.clipboard.writeText(content);
-        this.textContent = 'Tersalin! (Coba paste di file index.html di repo GitHub)';
-      }catch(e){
-        this.textContent = 'Gagal menyalin — buka manual dan salin kontennya';
-      }
-    });
-
-    document.getElementById('downloadBtn').addEventListener('click', function(){
-      const full = '<!doctype html>' + document.documentElement.outerHTML;
-      const blob = new Blob([full], {type: 'text/html'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;a.download = 'index.html';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-    });
-  </script></body>
+    
 </html>
