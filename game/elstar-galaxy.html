@@ -1,0 +1,213 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Elstar Galaxy — Elstar.site</title>
+  <style>
+    html,body { height:100%; margin:0; background:#000; }
+    #game-container { width:100%; max-width:960px; margin:0 auto; }
+    .info { color:#ddd; font-family:system-ui,Segoe UI,Roboto; text-align:center; padding:8px 0; }
+  </style>
+  <script src="https://unpkg.com/phaser@3.60.0/dist/phaser.min.js"></script>
+</head>
+<body>
+  <div class="info">Use Arrow keys or WASD to move. Space to shoot. (Starter for Elstar.site)</div>
+  <div id="game-container"></div><script>
+class Boot extends Phaser.Scene {
+  constructor(){ super('Boot'); }
+  preload(){
+    // nothing to load - sprites are generated procedurally
+  }
+  create(){ this.scene.start('Main'); }
+}
+
+class Main extends Phaser.Scene{
+  constructor(){ super('Main'); }
+  create(){
+    // world size
+    this.scale.displaySize.setAspectRatio(16/9);
+
+    // starfield (tileSprite)
+    this.starfield = this.add.tileSprite(0,0, this.scale.width, this.scale.height, null).setOrigin(0);
+    // generate star texture
+    let g = this.make.graphics({x:0,y:0,add:false});
+    g.fillStyle(0xffffff,1);
+    g.fillRect(0,0,2,2);
+    g.generateTexture('star',2,2);
+    g.clear();
+
+    // create repeated stars
+    for(let i=0;i<120;i++){
+      let s = this.add.image(Phaser.Math.Between(0,this.scale.width), Phaser.Math.Between(0,this.scale.height), 'star');
+      s.setScale(Phaser.Math.FloatBetween(0.3,1.2));
+      s.setAlpha(Phaser.Math.FloatBetween(0.2,0.9));
+      s.depth = 0;
+    }
+
+    // create simple pixel-player texture
+    let p = this.make.graphics({x:0,y:0,add:false});
+    p.fillStyle(0x66ccff,1); p.fillRect(0,0,20,10);
+    p.fillStyle(0x0044aa,1); p.fillRect(2,2,16,6);
+    p.generateTexture('player',20,10); p.clear();
+
+    // shot texture
+    let b = this.make.graphics({add:false}); b.fillStyle(0xffff66,1); b.fillRect(0,0,4,6); b.generateTexture('shot',4,6); b.clear();
+
+    // enemy texture
+    let e = this.make.graphics({add:false}); e.fillStyle(0xff66cc,1); e.fillRect(0,0,22,12); e.generateTexture('enemy',22,12); e.clear();
+
+    // boss texture
+    let bossG = this.make.graphics({add:false}); bossG.fillStyle(0xffcc00,1); bossG.fillRect(0,0,120,64); bossG.generateTexture('boss',120,64); bossG.clear();
+
+    // player
+    this.player = this.physics.add.sprite(80,this.scale.height/2,'player');
+    this.player.setCollideWorldBounds(true);
+    this.player.setData('cooldown',0);
+
+    // groups
+    this.shots = this.physics.add.group({classType:Phaser.GameObjects.Sprite, runChildUpdate:true});
+    this.enemies = this.physics.add.group();
+
+    // spawn enemies
+    this.time.addEvent({delay:1200, callback:()=>{
+      let y = Phaser.Math.Between(30,this.scale.height-30);
+      let en = this.enemies.create(this.scale.width+20,y,'enemy');
+      en.setVelocityX(-120 - Phaser.Math.Between(0,80));
+      en.setData('hp',1);
+    }, loop:true});
+
+    // boss trigger
+    this.time.delayedCall(10000, ()=> this.spawnBoss(), [], this);
+
+    // collisions
+    this.physics.add.overlap(this.shots, this.enemies, this.onShotHit, null, this);
+    this.physics.add.overlap(this.shots, this.bossGroup, this.onShotHitBoss, null, this);
+    this.physics.add.overlap(this.player, this.enemies, ()=>this.playerHit(), null, this);
+    this.physics.add.overlap(this.player, this.bossGroup, ()=>this.playerHit(), null, this);
+
+    // UI
+    this.score = 0;
+    this.scoreText = this.add.text(10,10,'Score: 0',{font:'16px monospace', fill:'#fff'}).setScrollFactor(0);
+
+    // inputs
+    this.cursors = this.input.keyboard.addKeys({up:'UP',down:'DOWN',left:'LEFT',right:'RIGHT',w:'W',a:'A',s:'S',d:'D',space:'SPACE'});
+
+  }
+
+  spawnBoss(){
+    this.bossGroup = this.physics.add.group();
+    this.boss = this.bossGroup.create(this.scale.width+200, this.scale.height/2, 'boss');
+    this.boss.setImmovable(true);
+    this.boss.setData('hp',25);
+    this.boss.setVelocityX(-60);
+    this.bossPhase = 0;
+    // simple boss shooting
+    this.time.addEvent({delay:800, loop:true, callback:()=>{
+      if(!this.boss.active) return;
+      this.bossShoot();
+    }});
+  }
+
+  bossShoot(){
+    // simple radial bullets
+    for(let i=0;i<8;i++){
+      let angle = Phaser.Math.DegToRad(i*45 + (this.bossPhase*10));
+      let bx = this.boss.x - 30; let by = this.boss.y;
+      let bullet = this.physics.add.image(bx,by,'shot');
+      bullet.setVelocity(Math.cos(angle)*120, Math.sin(angle)*120);
+      bullet.setScale(0.7);
+      bullet.setTint(0xff4444);
+      bullet.setData('enemy',true);
+      bullet.setCollideWorldBounds(false);
+      this.time.delayedCall(6000, ()=> bullet.destroy());
+    }
+    this.bossPhase++;
+  }
+
+  onShotHit(shot, enemy){
+    try{ shot.destroy(); }catch(e){}
+    enemy.setData('hp', enemy.getData('hp') - 1);
+    if(enemy.getData('hp')<=0){ enemy.destroy(); this.addScore(50); }
+  }
+
+  onShotHitBoss(shot, boss){
+    if(!boss.active) return;
+    try{ shot.destroy(); }catch(e){}
+    let hp = boss.getData('hp') - 1; boss.setData('hp', hp);
+    boss.setTint(Phaser.Display.Color.GetColor(255, 150 + (hp%2)*80, 150));
+    if(hp<=0){ boss.destroy(); this.addScore(2000); this.showVictory(); }
+  }
+
+  playerHit(){
+    // simple respawn
+    this.cameras.main.shake(200,0.01);
+    this.player.setTint(0xff0000);
+    this.time.delayedCall(400, ()=> this.player.clearTint());
+  }
+
+  addScore(v){ this.score += v; this.scoreText.setText('Score: '+this.score); }
+
+  update(time, delta){
+    // scroll background stars
+    this.starfield.tilePositionX += 0.3;
+
+    // movement
+    let speed = 180;
+    let vx=0, vy=0;
+    if(this.cursors.left.isDown || this.cursors.a.isDown) vx = -speed;
+    if(this.cursors.right.isDown || this.cursors.d.isDown) vx = speed;
+    if(this.cursors.up.isDown || this.cursors.w.isDown) vy = -speed;
+    if(this.cursors.down.isDown || this.cursors.s.isDown) vy = speed;
+    this.player.setVelocity(vx,vy);
+
+    // shooting cooldown
+    let cd = this.player.getData('cooldown');
+    if(cd>0) this.player.setData('cooldown', cd - delta);
+    if((this.cursors.space.isDown) && this.player.getData('cooldown')<=0){ this.fire(); this.player.setData('cooldown', 220); }
+
+    // remove offscreen shots and enemy bullets
+    this.physics.world.children.each((c)=>{
+      if(c.x < -50 || c.x > this.scale.width + 50 || c.y < -50 || c.y > this.scale.height + 50){
+        if(c.texture && (c.texture.key==='shot')){ try{ c.destroy(); }catch(e){} }
+      }
+    });
+
+    // basic boss AI follow
+    if(this.boss && this.boss.active){
+      // slowly follow Y
+      this.boss.y += (this.player.y - this.boss.y) * 0.02;
+      // change velocity pattern
+      if(this.boss.x > this.scale.width - 180) this.boss.setVelocityX(-40);
+      else this.boss.setVelocityX(0);
+    }
+  }
+
+  fire(){
+    let shot = this.physics.add.image(this.player.x + 18, this.player.y, 'shot');
+    shot.setVelocityX(300);
+    shot.setData('friendly', true);
+    shot.setCollideWorldBounds(false);
+    this.shots.add(shot);
+  }
+
+  showVictory(){
+    let w = this.add.text(this.scale.width/2, this.scale.height/2, 'VICTORY!', {font:'32px monospace', fill:'#ffff66'}).setOrigin(0.5);
+    this.time.delayedCall(3000, ()=> w.destroy());
+  }
+}
+
+const config = {
+  type: Phaser.AUTO,
+  parent: 'game-container',
+  width: 960,
+  height: 540,
+  backgroundColor: '#000000',
+  physics: { default: 'arcade', arcade: { debug:false } },
+  scene: [Boot, Main]
+};
+
+const game = new Phaser.Game(config);
+</script></body>
+</html>
