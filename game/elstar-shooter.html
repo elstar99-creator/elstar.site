@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elstar Shooter — Orion vs UFOs</title>
+<style>
+  :root{--bg:#071426;--ui:#e6f7ff}
+  body{margin:0;overflow:hidden;background:var(--bg);font-family:system-ui}
+  #game{position:absolute;inset:0;margin:auto;display:block;touch-action:none}
+  #uiScore{position:absolute;left:12px;top:12px;color:var(--ui);font-weight:700;z-index:20}
+  #startBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px 28px;border-radius:12px;background:#0ea5a4;color:#022;z-index:30;border:0;font-size:18px}
+  #controls{position:fixed;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:10px;z-index:20}
+  .btn{padding:12px 18px;border-radius:10px;background:rgba(255,255,255,0.06);color:var(--ui);border:0;font-weight:700}
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+<div id="uiScore">Score: <span id="score">0</span></div>
+<button id="startBtn">MAINKAN — Orion vs UFO</button>
+<div id="controls" style="display:none">
+  <button class="btn" id="leftBtn">◀</button>
+  <button class="btn" id="shootBtn">Tembak</button>
+  <button class="btn" id="rightBtn">▶</button>
+</div>
+
+<script>
+// --- canvas setup ---
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// --- game state ---
+let running = false;
+let score = 0;
+let player, bullets = [], enemies = [], spawnTimer = 0, bgOffset = 0;
+
+// settings
+const playerW = 60, playerH = 40;
+const enemyW = 50, enemyH = 36;
+
+// --- simple Orion ship pixel draw (ship points) ---
+function drawOrion(x,y,scale=1){
+  // body
+  ctx.fillStyle = '#4ea8de';
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x+24*scale, y-12*scale);
+  ctx.lineTo(x+36*scale, y-6*scale);
+  ctx.lineTo(x+60*scale, y);
+  ctx.lineTo(x+36*scale, y+6*scale);
+  ctx.lineTo(x+24*scale, y+12*scale);
+  ctx.closePath();
+  ctx.fill();
+  // cockpit
+  ctx.fillStyle = '#062a3b';
+  ctx.fillRect(x+18*scale, y-6*scale, 12*scale, 12*scale);
+}
+
+// --- simple UFO enemy draw ---
+function drawUFO(x,y,scale=1){
+  // dome
+  ctx.fillStyle='#bde4a6';
+  ctx.beginPath();
+  ctx.ellipse(x+25*scale, y-6*scale, 20*scale, 12*scale, 0, Math.PI, 0);
+  ctx.fill();
+  // body
+  ctx.fillStyle='#9b59b6';
+  ctx.beginPath();
+  ctx.ellipse(x+25*scale, y+6*scale, 28*scale, 12*scale, 0, 0, Math.PI*2);
+  ctx.fill();
+  // lights
+  for(let i=0;i<5;i++){
+    ctx.fillStyle = i%2? '#ffe66d':'#ff8fab';
+    ctx.beginPath();
+    ctx.arc(x+8 + i*10*scale, y+6*scale, 3*scale, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+// --- init player ---
+function resetPlayer(){
+  player = {
+    x: (canvas.width - playerW)/2,
+    y: canvas.height - playerH - 20,
+    w: playerW,
+    h: playerH,
+    vx: 0,
+    speed: 6,
+    cooldown: 0
+  };
+}
+
+// --- spawn enemy from top ---
+function spawnEnemy(){
+  const x = Math.random()*(canvas.width - enemyW);
+  const speed = 1.2 + Math.random()*2.0;
+  enemies.push({x, y:-enemyH, w:enemyW, h:enemyH, vy: speed, hp: 1});
+}
+
+// --- shoot bullet (from player to up) ---
+function shoot(){
+  if(!running) return;
+  if(player.cooldown > 0) return;
+  bullets.push({x: player.x + player.w/2 - 6, y: player.y - 10, w: 12, h: 18, vy: -8});
+  player.cooldown = 12; // frames
+}
+
+// --- collision AABB ---
+function collide(a,b){
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// --- input ---
+const keys = {};
+window.addEventListener('keydown', (e)=>{ keys[e.key.toLowerCase()] = true; if(e.key===' '){ shoot(); e.preventDefault(); }});
+window.addEventListener('keyup', (e)=>{ keys[e.key.toLowerCase()] = false; });
+
+document.getElementById('leftBtn').addEventListener('pointerdown', ()=> keys['arrowleft']=true);
+document.getElementById('leftBtn').addEventListener('pointerup', ()=> keys['arrowleft']=false);
+document.getElementById('rightBtn').addEventListener('pointerdown', ()=> keys['arrowright']=true);
+document.getElementById('rightBtn').addEventListener('pointerup', ()=> keys['arrowright']=false);
+document.getElementById('shootBtn').addEventListener('pointerdown', shoot);
+
+// touch to shoot quick tap center
+canvas.addEventListener('pointerdown', (e)=>{
+  // ignore if touching controls area
+  const rect = canvas.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  if(y < canvas.height - 120) shoot();
+});
+
+// --- start button ---
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('controls').style.display='flex';
+  score = 0;
+  document.getElementById('score').textContent = score;
+  enemies = []; bullets = [];
+  spawnTimer = 40;
+  bgOffset = 0;
+  resetPlayer();
+  running = true;
+  loop();
+});
+
+// --- game over ---
+function gameOver(){
+  running = false;
+  document.getElementById('startBtn').textContent = 'MAIN LAGI — Orion vs UFO';
+  document.getElementById('startBtn').style.display='block';
+  document.getElementById('controls').style.display='none';
+  // flash overlay
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#fff';
+  ctx.font = '28px system-ui';
+  ctx.textAlign='center';
+  ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 10);
+  ctx.font = '18px system-ui';
+  ctx.fillText('Score: '+score, canvas.width/2, canvas.height/2 + 20);
+}
+
+// --- update loop ---
+function update(){
+  if(!running) return;
+
+  // background scroll (top->down)
+  bgOffset += 1.6;
+  if(bgOffset > canvas.height) bgOffset = 0;
+
+  // player movement
+  player.vx = 0;
+  if(keys['arrowleft'] || keys['a']) player.vx = -player.speed;
+  if(keys['arrowright'] || keys['d']) player.vx = player.speed;
+  player.x += player.vx;
+  if(player.x < 6) player.x = 6;
+  if(player.x + player.w > canvas.width - 6) player.x = canvas.width - player.w - 6;
+
+  // cooldown
+  if(player.cooldown > 0) player.cooldown--;
+
+  // spawn enemies periodically
+  spawnTimer--;
+  if(spawnTimer <= 0){
+    spawnEnemy();
+    spawnTimer = 40 + Math.floor(Math.random()*40); // variable spawn
+  }
+
+  // update bullets
+  for(let i = bullets.length-1; i>=0; i--){
+    bullets[i].y += bullets[i].vy;
+    if(bullets[i].y + bullets[i].h < -10) bullets.splice(i,1);
+  }
+
+  // update enemies
+  for(let i=enemies.length-1;i>=0;i--){
+    enemies[i].y += enemies[i].vy;
+    // if reach bottom -> game over (or drain life)
+    if(enemies[i].y > canvas.height + 30){
+      // enemy escaped -> small penalty
+      score = Math.max(0, score - 5);
+      document.getElementById('score').textContent = score;
+      enemies.splice(i,1);
+      continue;
+    }
+
+    // check collision with bullets
+    let hit=false;
+    for(let j=bullets.length-1;j>=0;j--){
+      if(collide(bullets[j], enemies[i])){
+        // destroy both
+        bullets.splice(j,1);
+        hit=true;
+        break;
+      }
+    }
+    if(hit){
+      score += 20;
+      document.getElementById('score').textContent = score;
+      enemies.splice(i,1);
+      continue;
+    }
+
+    // check collision with player
+    const pxBox = {x:player.x, y:player.y-6, w:player.w, h:player.h+6};
+    if(collide(pxBox, enemies[i])){
+      gameOver();
+      return;
+    }
+  }
+}
+
+// --- draw loop ---
+function draw(){
+  // clear
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // starfield / gradient background
+  const g = ctx.createLinearGradient(0,0,0,canvas.height);
+  g.addColorStop(0,'#071426');
+  g.addColorStop(1,'#04233a');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // subtle moving pattern (simulated stars)
+  ctx.fillStyle = 'rgba(255,255,255,0.02)';
+  for(let i=0;i<80;i++){
+    const sx = (i*37 + Math.floor(bgOffset*0.4)) % canvas.width;
+    const sy = (i*73 + Math.floor(bgOffset*0.6)) % canvas.height;
+    ctx.fillRect(sx, sy, 2,2);
+  }
+
+  // draw enemies
+  enemies.forEach(e=>{
+    drawUFO(e.x, e.y, 1);
+  });
+
+  // draw bullets
+  bullets.forEach(b=>{
+    ctx.fillStyle = '#ffe66d';
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+  });
+
+  // draw player (Orion ship)
+  drawOrion(player.x, player.y, 1);
+
+  // HUD will be DOM for score
+}
+
+// --- main loop ---
+function loop(){
+  if(!running) return;
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// init
+resetPlayer();
+document.getElementById('score').textContent = score;
+</script>
+
+</body>
+  </html>
